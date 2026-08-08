@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KONAMI CUP DRAW 2026</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="konami">KONAMI</div>
+  <h1>KONAMI CUP</h1>
+  <div class="subtitle">PES 2017 • SUMMER PATCH 2026 • INTERACTIVE DRAW</div>
+</header>
+
+<section id="setup" class="panel">
+  <h2>SETUP TOURNAMENT</h2>
+  <div class="grid3" id="players">
+    <div><label>Player 1</label><input value="Player 1"></div>
+    <div><label>Player 2</label><input value="Player 2"></div>
+    <div><label>Player 3</label><input value="Player 3"></div>
+  </div>
+
+  <div class="grid3" style="margin-top:14px">
+    <div class="tier"><h3>⭐ ELITE</h3><small>3 tim — tepat 1 untuk setiap pemain</small><textarea id="elite">Real Madrid
+Barcelona
+Manchester City</textarea></div>
+    <div class="tier"><h3>⚡ MENENGAH</h3><small>3 tim — tepat 1 untuk setiap pemain</small><textarea id="mid">Liverpool
+Arsenal
+Inter</textarea></div>
+    <div class="tier"><h3>🔥 DARK HORSE</h3><small>3 tim — tepat 1 untuk setiap pemain</small><textarea id="dark">Roma
+Porto
+Dortmund</textarea></div>
+  </div>
+
+  <p class="note">Sistem fair-lock: setiap pemain pasti mendapat 1 Elite + 1 Menengah + 1 Dark Horse. Urutan kategori dan tim diacak sehingga tidak bisa seseorang mendapat 3 tim kuat atau 3 tim lemah. Kamu bebas mengganti nama peserta dan 9 tim di atas.</p>
+  <div class="btnrow"><button id="start">START DRAW</button><button class="secondary" id="demo">ISI CONTOH</button></div>
+</section>
+
+<section id="draw" class="panel hidden">
+  <div class="drawbox">
+    <div class="turn">CURRENT DRAW</div>
+    <div class="player" id="playerName">PLAYER 1</div>
+    <div class="ball" id="ball">⚽</div>
+    <div class="slot"><span id="slotText">READY</span></div>
+    <div class="status" id="status">Tekan SPIN untuk memulai</div>
+    <div class="btnrow"><button id="spin">SPIN</button><button class="secondary" id="skip">SKIP ANIMATION</button></div>
+  </div>
+</section>
+
+<section id="result" class="panel hidden">
+  <h2>FINAL DRAW RESULT</h2>
+  <div class="results" id="resultCards"></div>
+  <div class="btnrow"><button id="bracketBtn">BUAT BRACKET</button><button class="secondary" id="again">DRAW ULANG</button></div>
+</section>
+
+<section id="bracketSection" class="panel hidden">
+  <h2>TOURNAMENT BRACKET</h2>
+  <div class="bracket" id="bracket"></div>
+  <p class="note">Bracket awal dibuat dari 9 klub hasil draw. Karena format turnamen bisa kamu sesuaikan sendiri, slot pertama dibuat fleksibel untuk menentukan match/bye secara manual.</p>
+</section>
+
+<footer>Konami Cup Draw • Offline • Data hanya tersimpan di browser selama halaman aktif</footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
