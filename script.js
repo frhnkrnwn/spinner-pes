@@ -52,13 +52,13 @@ Real Betis
 Girona
 Almeria
 Eintracht Frankfurt
-Lens
 Bologna
 Lecce
-Cagliari`
+Cagliari
+Torino`
 };
 
-let state={players:[],tiers:{},order:[],idx:0,results:[]};
+let state={players:[],tiers:{},allTeams:[],idx:0,results:[]};
 
 function $$(selector,parent=document){return Array.from((parent||document).querySelectorAll(selector))}
 
@@ -98,7 +98,7 @@ $("addTierBtn").onclick=()=>{
       <input type="text" placeholder="Tier Name" data-type="tier-name" value="Tier ${count+1}" style="flex:1;margin:0 10px 0 0">
       <button class="danger" style="padding:6px 10px;font-size:11px;margin:0" onclick="this.parentElement.parentElement.remove()">×</button>
     </h3>
-    <small>Tim dalam tier ini akan dibagi rata ke semua peserta</small>
+    <small>Masukkan tim, akan dicampur dengan tier lain untuk dibagi ke semua peserta</small>
     <textarea data-type="tier" placeholder="Masukkan nama tim, 1 baris per tim"></textarea>
   `;
   $("tiersContainer").appendChild(div);
@@ -117,8 +117,8 @@ window.addEventListener("load",()=>{
     $("playersContainer").appendChild(div);
   }
   
-  // Add 4 default tiers
-  Object.entries(DEFAULT_TEAMS).slice(0,4).forEach(([name,teams])=>{
+  // Add 3 default tiers
+  Object.entries(DEFAULT_TEAMS).slice(0,3).forEach(([name,teams])=>{
     const div=document.createElement("div");
     div.className="tier";
     div.innerHTML=`
@@ -126,7 +126,7 @@ window.addEventListener("load",()=>{
         <input type="text" placeholder="Tier Name" data-type="tier-name" value="${name}" style="flex:1;margin:0 10px 0 0">
         <button class="danger" style="padding:6px 10px;font-size:11px;margin:0" onclick="this.parentElement.parentElement.remove()">×</button>
       </h3>
-      <small>Tim dalam tier ini akan dibagi rata ke semua peserta</small>
+      <small>Masukkan tim, akan dicampur dengan tier lain untuk dibagi ke semua peserta</small>
       <textarea data-type="tier" placeholder="Masukkan nama tim, 1 baris per tim">${teams}</textarea>
     `;
     $("tiersContainer").appendChild(div);
@@ -139,55 +139,57 @@ $("start").onclick=()=>{
   const tierInputs=$$("textarea[data-type='tier']");
   const tierNames=$$("input[data-type='tier-name']");
   
-  if(playerInputs.length<2){alert("Minimal 2 peserta. Tambahkan peserta terlebih dahulu.");return}
-  if(tierInputs.length<2){alert("Minimal 2 tier. Tambahkan tier terlebih dahulu.");return}
+  if(playerInputs.length<2){alert("Minimal 2 peserta.");return}
+  if(tierInputs.length<1){alert("Minimal 1 tier.");return}
   
   const players=playerInputs.map(x=>x.value.trim()||"Player").filter(Boolean);
   const tiers={};
-  let allValid=true;
+  let totalTeams=0;
   
   tierInputs.forEach((ta,i)=>{
     const tierName=tierNames[i].value.trim()||`Tier ${i+1}`;
     const teams=lines(ta.value);
-    if(teams.length%players.length!==0){
-      alert(`Tier "${tierName}": Jumlah tim (${teams.length}) harus habis dibagi dengan jumlah peserta (${players.length})`);
-      allValid=false;
+    if(teams.length===0){
+      alert(`Tier "${tierName}": Masukkan minimal 1 tim`);
       return;
     }
     tiers[tierName]=shuffle(teams);
+    totalTeams+=teams.length;
   });
   
-  if(!allValid)return;
+  if(totalTeams%players.length!==0){
+    alert(`Total tim (${totalTeams}) harus habis dibagi peserta (${players.length}).\n\nContoh:\n- 3 peserta × 2 team = 6 total\n- 3 peserta × 3 team = 9 total`);
+    return;
+  }
+  
+  const allTeams=[];
+  Object.values(tiers).forEach(tierTeams=>{
+    allTeams.push(...tierTeams);
+  });
   
   state={
     players,
     tiers,
-    order:shuffle(Object.keys(tiers)),
+    allTeams:shuffle(allTeams),
     idx:0,
+    teamPerPlayer:totalTeams/players.length,
     results:players.map(()=>[])
   };
   
   $("setup").classList.add("hidden");
   $("draw").classList.remove("hidden");
-  $("result").classList.add("hidden");
-  $("bracketSection").classList.add("hidden");
   updateTurn();
-  $("status").textContent="Tier pertama sudah diacak. Tekan SPIN.";
+  $("status").textContent="Tim sudah diacak. Tekan SPIN.";
 };
 
 function updateTurn(){
   const currentPlayer=state.players[state.idx];
-  const tierIndex=state.results[state.idx].length;
-  const currentTier=state.order[tierIndex];
-  const teamsPerPlayer=state.tiers[currentTier].length/state.players.length;
-  const playerDrawCount=Math.floor(state.results[state.idx].length/Object.keys(state.tiers).length);
-  const totalTeamsPerTier=state.tiers[currentTier].length;
+  const drawnCount=state.results[state.idx].length;
   
   $("playerName").textContent=currentPlayer;
   $("slotText").textContent="READY";
-  $("tierInfo").textContent=`Tier: ${currentTier}`;
-  $("progress").textContent=`${state.results[state.idx].length}/${Object.keys(state.tiers).length}`;
-  $("status").textContent=`Kategori: ${currentTier}`;
+  $("progress").textContent=`${drawnCount}/${Math.floor(state.teamPerPlayer)}`;
+  $("tierInfo").textContent=`Team ${drawnCount+1}`;
 }
 
 let timer=null;
@@ -196,10 +198,7 @@ $("skip").onclick=()=>spin(true);
 
 function spin(skip){
   if(timer)return;
-  const tierIndex=state.results[state.idx].length;
-  const currentTier=state.order[tierIndex];
-  const pool=state.tiers[currentTier];
-  
+  const pool=state.allTeams;
   if(!pool||!pool.length){advance();return}
   
   $("spin").disabled=true;
@@ -207,25 +206,21 @@ function spin(skip){
   $("ball").classList.add("spinning");
   
   let n=0;
-  if(skip){finish(currentTier,Math.floor(Math.random()*pool.length));return}
+  if(skip){finish(Math.floor(Math.random()*pool.length));return}
   
   timer=setInterval(()=>{
     $("slotText").textContent=pool[n%pool.length];
     n++;
-    if(n>=40){
-      clearInterval(timer);
-      timer=null;
-      finish(currentTier,Math.floor(Math.random()*pool.length));
-    }
+    if(n>=40){clearInterval(timer);timer=null;finish(Math.floor(Math.random()*pool.length))}
   },50);
 }
 
-function finish(tier,i){
-  const pool=state.tiers[tier];
+function finish(i){
+  const pool=state.allTeams;
   const team=pool.splice(i,1)[0];
-  state.results[state.idx].push({team,tier});
+  state.results[state.idx].push({team});
   $("slotText").textContent=team;
-  $("status").textContent=`✓ TERPILIH • ${tier}`;
+  $("status").textContent=`✓ ${team}`;
   $("ball").classList.remove("spinning");
   
   setTimeout(()=>{
@@ -237,11 +232,10 @@ function finish(tier,i){
 }
 
 function advance(){
-  const totalTeams=Object.keys(state.tiers).length;
-  if(state.results.every(r=>r.length===totalTeams)){
-    showResults();
-    return;
-  }
+  const totalDrawn=state.results.flat().length;
+  const totalNeeded=state.players.length*state.teamPerPlayer;
+  
+  if(totalDrawn>=totalNeeded){showResults();return}
   state.idx++;
   if(state.idx>=state.players.length)state.idx=0;
   updateTurn();
@@ -253,17 +247,7 @@ function showResults(){
   
   const html=state.players.map((p,i)=>{
     const teams=state.results[i];
-    return `
-      <div class="card">
-        <h3>${esc(p)}</h3>
-        ${teams.map(x=>`
-          <div class="team">
-            <span>${esc(x.team)}</span>
-            <span class="badge">${esc(x.tier)}</span>
-          </div>
-        `).join("")}
-      </div>
-    `;
+    return `<div class="card"><h3>${esc(p)}</h3>${teams.map(x=>`<div class="team"><span>${esc(x.team)}</span></div>`).join("")}</div>`;
   }).join("");
   
   $("resultCards").innerHTML=html;
@@ -274,26 +258,12 @@ $("again").onclick=()=>{location.reload()};
 $("bracketBtn").onclick=()=>{
   const clubs=state.results.flat().map(x=>x.team);
   const pairs=[];
-  for(let i=0;i<clubs.length;i+=2){
-    pairs.push([clubs[i],clubs[i+1]||"BYE"]);
-  }
+  for(let i=0;i<clubs.length;i+=2)pairs.push([clubs[i],clubs[i+1]||"BYE"]);
   
   $("bracketSection").classList.remove("hidden");
-  $("bracket").innerHTML=pairs.map((m,i)=>`
-    <div class="match">
-      <b>MATCH ${i+1}</b>
-      ⚽ ${esc(m[0])}<br>
-      VS<br>
-      ⚽ ${esc(m[1])}
-    </div>
-  `).join("");
+  $("bracket").innerHTML=pairs.map((m,i)=>`<div class="match"><b>MATCH ${i+1}</b>⚽ ${esc(m[0])}<br>VS<br>⚽ ${esc(m[1])}</div>`).join("");
 };
 
-$("backBtn").onclick=()=>{
-  $("bracketSection").classList.add("hidden");
-  $("result").classList.remove("hidden");
-};
+$("backBtn").onclick=()=>{$("bracketSection").classList.add("hidden");$("result").classList.remove("hidden")};
 
-function esc(s){
-  return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))
-}
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
