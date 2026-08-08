@@ -1,61 +1,115 @@
 const $=id=>document.getElementById(id);
 
-// Default teams dari berbagai liga top Eropa
+// Tim dari berbagai liga Eropa dengan kategorisasi tier
 const DEFAULT_TEAMS={
-  "🏆 ELITE TIER":`Manchester City
+  "⭐ TIER 1 - ELITE EROPA":`Manchester City
+Arsenal
+Liverpool
 Real Madrid
 Barcelona
-Liverpool
-Bayern Munich
-Paris Saint-Germain`,
-  
-  "⚡ KUAT":`Arsenal
-Chelsea
-Manchester United
-Tottenham
-AC Milan
+Bayern München
+Bayer Leverkusen
+Paris Saint-Germain
 Inter Milan
 Juventus
+AC Milan
+Benfica
+FC Porto
+Ajax Amsterdam
+PSV Eindhoven`,
+  
+  "🔴 TIER 2 - PENANTANG KUAT":`Chelsea
+Aston Villa
+Newcastle United
+Manchester United
+Tottenham Hotspur
+Atlético Madrid
+Real Sociedad
+Athletic Bilbao
+Girona
+Villarreal
 Borussia Dortmund
 RB Leipzig
-Atletico Madrid`,
-  
-  "💪 MENENGAH":`Brighton
-Aston Villa
-West Ham
-Bayer Leverkusen
-Fiorentina
-Roma
-Napoli
-Lazio
-Valencia
-Sevilla
-Real Sociedad
-Porto
-Ajax
-Benfica
-Galatasaray`,
-  
-  "🔥 DARK HORSE":`Ipswich
-Fulham
-Southampton
-Nottingham
-Lens
-Marseille
-Monaco
-Rennes
-Union Berlin
-Hoffenheim
-Sassuolo
-Monza
-Real Betis
-Girona
-Almeria
+VfB Stuttgart
 Eintracht Frankfurt
-Bologna
-Lecce
-Cagliari
-Torino`
+Monaco
+Lille
+Marseille
+Lyon
+Brest
+Feyenoord
+AZ Alkmaar
+FC Twente
+Atalanta
+AS Roma
+Napoli
+Lazio`,
+  
+  "🟠 TIER 3 - PAPAN TENGAH/KUDA HITAM":`Brighton & Hove Albion
+West Ham United
+Brentford
+Crystal Palace
+Fulham
+Bournemouth
+Everton
+Real Betis
+Sevilla
+Valencia
+Osasuna
+Getafe
+Celta Vigo
+Mallorca
+SC Freiburg
+TSG Hoffenheim
+Wolfsburg
+Borussia Mönchengladbach
+Werder Bremen
+Nice
+Lens
+Rennes
+Reims
+Toulouse
+Strasbourg
+Montpellier
+FC Utrecht
+Sparta Rotterdam
+Go Ahead Eagles
+NEC Nijmegen
+Heerenveen
+Groningen`,
+  
+  "🟡 TIER 4 - PAPAN BAWAH/PROMOSI":`Nottingham Forest
+Wolverhampton Wanderers
+Leicester City
+Ipswich Town
+Southampton
+Rayo Vallecano
+Las Palmas
+Deportivo Alavés
+Leganés
+Real Valladolid
+Espanyol
+Heidenheim
+Union Berlin
+VfL Bochum
+St. Pauli
+Holstein Kiel
+Nantes
+Le Havre
+Auxerre
+Angers
+Saint-Étienne
+PEC Zwolle
+Fortuna Sittard
+Heracles Almelo
+Willem II
+NAC Breda
+RKC Waalwijk
+Galatasaray
+Fenerbahçe
+Celtic
+Rangers
+Club Brugge`,
 };
 
 let state={players:[],tiers:{},allTeams:[],idx:0,results:[]};
@@ -117,8 +171,8 @@ window.addEventListener("load",()=>{
     $("playersContainer").appendChild(div);
   }
   
-  // Add 3 default tiers
-  Object.entries(DEFAULT_TEAMS).slice(0,3).forEach(([name,teams])=>{
+  // Add 4 default tiers
+  Object.entries(DEFAULT_TEAMS).forEach(([name,teams])=>{
     const div=document.createElement("div");
     div.className="tier";
     div.innerHTML=`
@@ -158,7 +212,7 @@ $("start").onclick=()=>{
   });
   
   if(totalTeams%players.length!==0){
-    alert(`Total tim (${totalTeams}) harus habis dibagi peserta (${players.length}).\n\nContoh:\n- 3 peserta × 2 team = 6 total\n- 3 peserta × 3 team = 9 total`);
+    alert(`Total tim (${totalTeams}) harus habis dibagi peserta (${players.length}).\n\nContoh:\n- 3 peserta × 2 team = 6 total\n- 3 peserta × 3 team = 9 total\n- 4 peserta × 3 team = 12 total`);
     return;
   }
   
@@ -178,6 +232,8 @@ $("start").onclick=()=>{
   
   $("setup").classList.add("hidden");
   $("draw").classList.remove("hidden");
+  $("result").classList.add("hidden");
+  $("bracketSection").classList.add("hidden");
   updateTurn();
   $("status").textContent="Tim sudah diacak. Tekan SPIN.";
 };
